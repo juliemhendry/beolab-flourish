@@ -5,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
@@ -30,7 +31,7 @@ export function FeelingScreen({ navigation, route }: Props) {
   );
 
   const handleSelect = async (feeling: FeelingResponse) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await recordPause(pauseId, feeling, doneEarly);
     setSaved(true);
   };

@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
@@ -40,12 +41,12 @@ export function HomeScreen({ navigation }: Props) {
   );
 
   const handleNewPause = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCurrentPause((prev) => getRandomPause(prev.id));
   }, []);
 
   const handleBegin = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setTimerActive(true);
   }, []);
 
@@ -60,7 +61,7 @@ export function HomeScreen({ navigation }: Props) {
   }, [currentPause.id, navigation]);
 
   const handleToggleFavourite = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleFavourite(currentPause.id);
   }, [currentPause.id, toggleFavourite]);
 
