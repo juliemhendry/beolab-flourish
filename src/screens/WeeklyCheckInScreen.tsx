@@ -5,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
@@ -33,7 +34,7 @@ export function WeeklyCheckInScreen({ navigation }: Props) {
 
   const handleSave = async () => {
     if (rating === null) return;
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await saveWeeklyCheckIn(rating, weekNumber);
     setSaved(true);
   };
@@ -77,7 +78,7 @@ export function WeeklyCheckInScreen({ navigation }: Props) {
                   <TouchableOpacity
                     key={i}
                     onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setRating(i);
                     }}
                     style={[

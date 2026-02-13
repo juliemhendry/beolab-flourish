@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
@@ -23,10 +24,9 @@ type Props = {
 };
 
 export function HomeScreen({ navigation }: Props) {
-  const { data } = useApp();
+  const { data, toggleFavourite } = useApp();
   const [timerActive, setTimerActive] = useState(false);
   const [currentPause, setCurrentPause] = useState<Pause>(() => getRandomPause());
-  const [doneEarly, setDoneEarly] = useState(false);
 
   function getRandomPause(exclude?: string): Pause {
     const available = exclude
@@ -35,28 +35,35 @@ export function HomeScreen({ navigation }: Props) {
     return available[Math.floor(Math.random() * available.length)];
   }
 
+  const isFavourite = useMemo(
+    () => (data.favouritePauses || []).includes(currentPause.id),
+    [data.favouritePauses, currentPause.id]
+  );
+
   const handleNewPause = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCurrentPause((prev) => getRandomPause(prev.id));
   }, []);
 
   const handleBegin = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setDoneEarly(false);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setTimerActive(true);
   }, []);
 
   const handleTimerComplete = useCallback(() => {
     setTimerActive(false);
-    setDoneEarly(false);
     navigation.navigate('Feeling', { pauseId: currentPause.id, doneEarly: false });
   }, [currentPause.id, navigation]);
 
   const handleDoneEarly = useCallback(() => {
     setTimerActive(false);
-    setDoneEarly(true);
     navigation.navigate('Feeling', { pauseId: currentPause.id, doneEarly: true });
   }, [currentPause.id, navigation]);
+
+  const handleToggleFavourite = useCallback(() => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    toggleFavourite(currentPause.id);
+  }, [currentPause.id, toggleFavourite]);
 
   const category = useMemo(
     () => CATEGORIES.find((c) => c.key === currentPause.category),
@@ -84,7 +91,7 @@ export function HomeScreen({ navigation }: Props) {
       >
         <View style={styles.header}>
           <View style={styles.logoRow}>
-            <Text style={styles.logo}>beó</Text>
+            <Text style={styles.logo}>beo</Text>
             <View style={styles.labBadge}>
               <Text style={styles.labText}>LAB</Text>
             </View>
@@ -92,13 +99,26 @@ export function HomeScreen({ navigation }: Props) {
         </View>
 
         <Card style={styles.pauseCard}>
-          {category && (
-            <View style={[styles.categoryBadge, { backgroundColor: category.color + '18' }]}>
-              <Text style={[styles.categoryText, { color: category.color }]}>
-                {category.label}
+          <View style={styles.cardHeader}>
+            {category && (
+              <View style={[styles.categoryBadge, { backgroundColor: category.color + '18' }]}>
+                <Text style={[styles.categoryText, { color: category.color }]}>
+                  {category.label}
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity
+              onPress={handleToggleFavourite}
+              style={styles.favButton}
+              accessibilityLabel={isFavourite ? 'Remove from favourites' : 'Add to favourites'}
+              accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={[styles.favIcon, isFavourite && styles.favIconActive]}>
+                {isFavourite ? '\u2665' : '\u2661'}
               </Text>
-            </View>
-          )}
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.pauseTitle}>{currentPause.title}</Text>
 
@@ -109,7 +129,7 @@ export function HomeScreen({ navigation }: Props) {
           </View>
 
           <Button
-            title={`Begin · ${currentPause.durationLabel}`}
+            title={`Begin \u00B7 ${currentPause.durationLabel}`}
             onPress={handleBegin}
             accessibilityHint={`Start a ${currentPause.durationLabel} ${currentPause.title} pause`}
           />
@@ -175,6 +195,11 @@ const styles = StyleSheet.create({
   pauseCard: {
     gap: Spacing.base,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   categoryBadge: {
     alignSelf: 'flex-start',
     paddingHorizontal: Spacing.md,
@@ -186,6 +211,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
+  },
+  favButton: {
+    padding: Spacing.xs,
+  },
+  favIcon: {
+    fontSize: 24,
+    color: Colors.textMuted,
+  },
+  favIconActive: {
+    color: Colors.primary,
   },
   pauseTitle: {
     ...Typography.h2,
