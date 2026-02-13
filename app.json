@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "beó lab",
+    "slug": "beolab-flourish",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "beolab",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F5F3"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "llc.beo.lab",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "beó lab uses anonymous data to measure whether brief offline pauses improve perceived digital self-control. No personal data is collected."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5F5F3"
+      },
+      "package": "llc.beo.lab",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#3D6B4A"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
