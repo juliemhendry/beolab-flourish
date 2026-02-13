@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import {
   UserData,
   DEFAULT_USER_DATA,
@@ -16,6 +15,11 @@ import {
   scheduleDailyReminders,
   cancelAllReminders,
 } from '../utils/notifications';
+
+function generateId(): string {
+  const s = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  return `${s()}${s()}-${s()}-${s()}-${s()}-${s()}${s()}${s()}`;
+}
 
 interface AppContextType {
   data: UserData;
@@ -41,16 +45,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const stored = await loadUserData();
-      if (!stored.deviceId) {
-        stored.deviceId = uuidv4();
+      try {
+        const stored = await loadUserData();
+        if (!stored.deviceId) {
+          stored.deviceId = generateId();
+        }
+        if (!stored.favouritePauses) {
+          stored.favouritePauses = [];
+        }
+        setData(stored);
+      } catch (e) {
+        console.warn('Failed to load user data:', e);
+      } finally {
+        setLoading(false);
       }
-      // Ensure favouritePauses exists for data migrated from earlier version
-      if (!stored.favouritePauses) {
-        stored.favouritePauses = [];
-      }
-      setData(stored);
-      setLoading(false);
     })();
   }, []);
 
@@ -200,7 +208,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Ignore if not available
     }
     await clearAllData();
-    const fresh: UserData = { ...DEFAULT_USER_DATA, deviceId: uuidv4() };
+    const fresh: UserData = { ...DEFAULT_USER_DATA, deviceId: generateId() };
     setData(fresh);
     await saveUserData(fresh);
     // Increment key to force NavigationContainer remount
