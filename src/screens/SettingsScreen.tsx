@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../constants/colors';
@@ -50,26 +51,39 @@ export function SettingsScreen({ navigation }: Props) {
     try {
       await exportUserData(data);
     } catch (e) {
-      Alert.alert('Export failed', 'Unable to export data. Please try again.');
+      if (Platform.OS === 'web') {
+        window.alert('Unable to export data. Please try again.');
+      } else {
+        Alert.alert('Export failed', 'Unable to export data. Please try again.');
+      }
     }
     setExporting(false);
   };
 
   const handleReset = () => {
-    Alert.alert(
-      'Reset all data',
-      'This will permanently delete all your data including assessment history, completed pauses, favourites, and settings. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: async () => {
-            await resetAllData();
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        'This will permanently delete all your data including assessment history, completed pauses, favourites, and settings. This cannot be undone.'
+      );
+      if (confirmed) {
+        resetAllData();
+      }
+    } else {
+      Alert.alert(
+        'Reset all data',
+        'This will permanently delete all your data including assessment history, completed pauses, favourites, and settings. This cannot be undone.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Reset',
+            style: 'destructive',
+            onPress: async () => {
+              await resetAllData();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (
