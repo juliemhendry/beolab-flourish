@@ -56,6 +56,7 @@ export interface UserData {
   assessments: AssessmentResult[];
   completedPauses: CompletedPause[];
   weeklyCheckIns: WeeklyCheckIn[];
+  favouritePauses: string[];
   firstOpenDate: string | null;
 }
 
@@ -68,6 +69,7 @@ export const DEFAULT_USER_DATA: UserData = {
   assessments: [],
   completedPauses: [],
   weeklyCheckIns: [],
+  favouritePauses: [],
   firstOpenDate: null,
 };
 

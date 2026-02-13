@@ -16,6 +16,7 @@ import { Typography, Spacing, BorderRadius } from '../constants/typography';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
+import { PAUSES, CATEGORIES } from '../constants/pauses';
 import {
   calculateStreak,
   calculateFeltBetterPercent,
@@ -32,6 +33,7 @@ export function SettingsScreen({ navigation }: Props) {
     data,
     toggleReminders,
     toggleResearchConsent,
+    toggleFavourite,
     resetAllData,
   } = useApp();
 
@@ -40,6 +42,8 @@ export function SettingsScreen({ navigation }: Props) {
   const latestAssessment = data.assessments[data.assessments.length - 1];
   const streak = calculateStreak(data.completedPauses);
   const feltBetter = calculateFeltBetterPercent(data.completedPauses);
+  const favourites = (data.favouritePauses || []);
+  const favouritePauses = PAUSES.filter((p) => favourites.includes(p.id));
 
   const handleExport = async () => {
     setExporting(true);
@@ -54,7 +58,7 @@ export function SettingsScreen({ navigation }: Props) {
   const handleReset = () => {
     Alert.alert(
       'Reset all data',
-      'This will permanently delete all your data including assessment history, completed pauses, and settings. This cannot be undone.',
+      'This will permanently delete all your data including assessment history, completed pauses, favourites, and settings. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -111,6 +115,34 @@ export function SettingsScreen({ navigation }: Props) {
           </View>
         </Card>
 
+        {/* Favourites */}
+        {favouritePauses.length > 0 && (
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Favourites</Text>
+            {favouritePauses.map((pause) => {
+              const cat = CATEGORIES.find((c) => c.key === pause.category);
+              return (
+                <View key={pause.id} style={styles.favRow}>
+                  <View style={styles.favInfo}>
+                    <Text style={styles.favTitle}>{pause.title}</Text>
+                    <Text style={[styles.favCategory, cat ? { color: cat.color } : null]}>
+                      {cat?.label || pause.category} · {pause.durationLabel}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => toggleFavourite(pause.id)}
+                    style={styles.favRemove}
+                    accessibilityLabel={`Remove ${pause.title} from favourites`}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.favRemoveIcon}>{'\u2665'}</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </Card>
+        )}
+
         {/* Actions */}
         <Card style={styles.section}>
           <TouchableOpacity
@@ -123,7 +155,7 @@ export function SettingsScreen({ navigation }: Props) {
             accessibilityLabel="Retake assessment"
           >
             <Text style={styles.menuText}>Retake assessment</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={styles.menuArrow}>{'\u203A'}</Text>
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -134,7 +166,7 @@ export function SettingsScreen({ navigation }: Props) {
             accessibilityLabel="Weekly check-in"
           >
             <Text style={styles.menuText}>Weekly check-in</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={styles.menuArrow}>{'\u203A'}</Text>
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -148,7 +180,7 @@ export function SettingsScreen({ navigation }: Props) {
             accessibilityLabel="Edit demographics"
           >
             <Text style={styles.menuText}>Demographics</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={styles.menuArrow}>{'\u203A'}</Text>
           </TouchableOpacity>
         </Card>
 
@@ -177,14 +209,16 @@ export function SettingsScreen({ navigation }: Props) {
           <View style={styles.toggleRow}>
             <View style={styles.toggleText}>
               <Text style={styles.menuText}>Reminders</Text>
-              <Text style={styles.toggleHint}>Daily pause reminders at 9am, 1pm, 7pm</Text>
+              <Text style={styles.toggleHint}>
+                Daily pauses at 9am, 1pm, 7pm{'\n'}Weekly check-in Sundays at 6pm
+              </Text>
             </View>
             <Switch
               value={data.remindersEnabled}
               onValueChange={toggleReminders}
               trackColor={{ false: Colors.border, true: Colors.primary }}
               thumbColor={Colors.white}
-              accessibilityLabel="Toggle daily reminders"
+              accessibilityLabel="Toggle reminders for daily pauses and weekly check-in"
             />
           </View>
 
@@ -216,7 +250,7 @@ export function SettingsScreen({ navigation }: Props) {
             <Text style={styles.menuText}>
               {exporting ? 'Exporting...' : 'Export my data'}
             </Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={styles.menuArrow}>{'\u203A'}</Text>
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -227,7 +261,7 @@ export function SettingsScreen({ navigation }: Props) {
             accessibilityLabel="View privacy policy"
           >
             <Text style={styles.menuText}>Privacy policy</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={styles.menuArrow}>{'\u203A'}</Text>
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -238,7 +272,7 @@ export function SettingsScreen({ navigation }: Props) {
             accessibilityLabel="View terms of use"
           >
             <Text style={styles.menuText}>Terms of use</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={styles.menuArrow}>{'\u203A'}</Text>
           </TouchableOpacity>
         </Card>
 
@@ -253,7 +287,7 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         <Text style={styles.versionText}>
-          beó lab · v1.0.0{'\n'}
+          beo lab v1.0.0{'\n'}
           lab@beo.llc
         </Text>
       </ScrollView>
@@ -322,6 +356,35 @@ const styles = StyleSheet.create({
   statLabel: {
     ...Typography.small,
     color: Colors.textMuted,
+  },
+  favRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  favInfo: {
+    flex: 1,
+  },
+  favTitle: {
+    ...Typography.body,
+    color: Colors.textDark,
+    fontWeight: '500',
+  },
+  favCategory: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  favRemove: {
+    padding: Spacing.xs,
+    marginLeft: Spacing.md,
+  },
+  favRemoveIcon: {
+    fontSize: 20,
+    color: Colors.primary,
   },
   menuItem: {
     flexDirection: 'row',

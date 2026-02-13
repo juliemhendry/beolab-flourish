@@ -115,7 +115,7 @@ function MainTabs() {
 }
 
 export function AppNavigator() {
-  const { data, loading } = useApp();
+  const { data, loading, resetKey } = useApp();
 
   if (loading) {
     return (
@@ -126,7 +126,7 @@ export function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer key={resetKey}>
       {data.onboardingComplete ? <MainTabs /> : <OnboardingNavigator />}
     </NavigationContainer>
   );
