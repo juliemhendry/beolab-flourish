@@ -44,9 +44,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
+    let done = false;
+
+    // Safety timeout — if loading hasn't finished after 4 seconds, force it.
+    const timeout = setTimeout(() => {
+      if (!done) {
+        console.warn('AppContext init timed out — forcing loading to false');
+        setLoading(false);
+      }
+    }, 4000);
+
     (async () => {
       try {
+        console.log('[AppContext] Loading user data…');
         const stored = await loadUserData();
+        console.log('[AppContext] User data loaded');
         if (!stored.deviceId) {
           stored.deviceId = generateId();
         }
@@ -57,9 +69,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         console.warn('Failed to load user data:', e);
       } finally {
+        done = true;
+        clearTimeout(timeout);
         setLoading(false);
+        console.log('[AppContext] Init complete, loading = false');
       }
     })();
+
+    return () => clearTimeout(timeout);
   }, []);
 
   const persist = useCallback(async (updated: UserData) => {

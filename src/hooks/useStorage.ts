@@ -5,7 +5,11 @@ const STORAGE_KEY = '@beolab_user_data';
 
 export async function loadUserData(): Promise<UserData> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    // Race against a timeout so a hanging AsyncStorage never blocks the app.
+    const raw = await Promise.race([
+      AsyncStorage.getItem(STORAGE_KEY),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+    ]);
     if (!raw) return { ...DEFAULT_USER_DATA };
     return { ...DEFAULT_USER_DATA, ...JSON.parse(raw) };
   } catch {
