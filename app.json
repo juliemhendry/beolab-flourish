@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "1",
       "bundleIdentifier": "llc.beo.lab",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "beó lab uses anonymous data to measure whether brief offline pauses improve perceived digital self-control. No personal data is collected."
